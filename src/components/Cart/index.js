@@ -12,6 +12,7 @@ const Cart = () => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(
     'Cash on Delivery',
   )
+  const [orderConfirmed, setOrderConfirmed] = useState(false)
 
   const handleOpenPaymentPopup = () => {
     setShowPaymentPopup(true)
@@ -25,6 +26,12 @@ const Cart = () => {
     setSelectedPaymentMethod(event.target.value)
   }
 
+  const handleConfirmOrder = () => {
+    console.log('Order confirmed')
+    setOrderConfirmed(true)
+    handleClosePaymentPopup()
+  }
+
   return (
     <CartContext.Consumer>
       {({cartList, removeAllCartItems}) => {
@@ -32,6 +39,10 @@ const Cart = () => {
 
         const onClickRemoveAllBtn = () => {
           removeAllCartItems()
+        }
+
+        const handleCheckout = () => {
+          handleOpenPaymentPopup()
         }
 
         return (
@@ -52,31 +63,29 @@ const Cart = () => {
                   </button>
                   <CartListView />
                   <CartSummary />
-                  {cartList.length > 0 && (
-                    <button
-                      type="button"
-                      className="checkout-btn"
-                      onClick={handleOpenPaymentPopup}
-                    >
-                      Checkout
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    className="checkout-btn"
+                    onClick={handleCheckout}
+                  >
+                    Checkout
+                  </button>
                 </div>
               )}
             </div>
-            {/* Render PaymentPopup component conditionally */}
             {showPaymentPopup && (
               <PaymentPopup
                 onClose={handleClosePaymentPopup}
-                onConfirmOrder={() => {
-                  // Simulate order confirmation by showing a console log
-                  console.log('Order confirmed')
-                  // You can add more logic here, such as sending order data to the server
-                }}
+                onConfirmOrder={handleConfirmOrder}
                 cartList={cartList}
                 selectedPaymentMethod={selectedPaymentMethod}
                 onSelectPaymentMethod={handleSelectPaymentMethod}
               />
+            )}
+            {orderConfirmed && (
+              <div className="order-confirmation">
+                Your order has been placed successfully!
+              </div>
             )}
           </>
         )
