@@ -1,56 +1,104 @@
+import {useContext, useState} from 'react'
+
+import CartContext from '../../context/CartContext'
+
 import './index.css'
 
-const PaymentPopup = ({
-  onClose,
-  onConfirmOrder,
-  cartList,
-  selectedPaymentMethod,
-  onSelectPaymentMethod,
-}) => {
-  const totalPrice = cartList.reduce(
-    (acc, item) => acc + item.price * item.quantity,
-    0,
-  )
+const paymentOptionsList = [
+  {
+    id: 'CARD',
+    displayText: 'Card',
+    isDisabled: true,
+  },
+  {
+    id: 'NET BANKING',
+    displayText: 'Net Banking',
+    isDisabled: true,
+  },
+  {
+    id: 'UPI',
+    displayText: 'UPI',
+    isDisabled: true,
+  },
+  {
+    id: 'WALLET',
+    displayText: 'Wallet',
+    isDisabled: true,
+  },
+  {
+    id: 'CASH ON DELIVERY',
+    displayText: 'Cash on Delivery',
+    isDisabled: false,
+  },
+]
 
-  const handleConfirmOrder = () => {
-    console.log('Order confirmed')
-    onClose()
-    onConfirmOrder()
+const PaymentPopup = () => {
+  const {cartList} = useContext(CartContext)
+
+  const [paymentMethod, setPaymentMethod] = useState('')
+  const [isOrderPlaced, setIsOrderPlaced] = useState(false)
+
+  const updatePaymentMethod = event => {
+    const {id} = event.target
+    setPaymentMethod(id)
   }
 
+  const onPlaceOrder = () => setIsOrderPlaced(true)
+
+  const getTotalPrice = () =>
+    cartList.reduce((acc, item) => acc + item.quantity * item.price, 0)
+
+  const renderPaymentMethodsInput = () => (
+    <ul className="payment-method-inputs">
+      {paymentOptionsList.map(eachMethod => (
+        <li key={eachMethod.id} className="payment-method-input-container">
+          <input
+            className="payment-method-input"
+            id={eachMethod.id}
+            type="radio"
+            name="paymentMethod"
+            disabled={eachMethod.isDisabled}
+            onChange={updatePaymentMethod}
+          />
+          <label
+            className={`payment-method-label ${
+              eachMethod.isDisabled ? 'disabled-label' : ''
+            }`}
+            htmlFor={eachMethod.id}
+          >
+            {eachMethod.displayText}
+          </label>
+        </li>
+      ))}
+    </ul>
+  )
+
   return (
-    <div className="payment-popup">
-      <div className="payment-popup-content">
-        <button type="button" className="close" onClick={onClose}>
-          &times;
-        </button>
-        <h2>Select Payment Method</h2>
-        <select
-          value={selectedPaymentMethod}
-          onChange={onSelectPaymentMethod}
-          aria-label="Select Payment Method"
-        >
-          <option value="Cash on Delivery">Cash on Delivery</option>
-          <option disabled>Card</option>
-          <option disabled>Net Banking</option>
-          <option disabled>UPI</option>
-          <option disabled>Wallet</option>
-        </select>
-        <div className="order-summary">
-          <h3>Order Summary</h3>
-          <p>Total Items: {cartList.length}</p>
-          <p>Total Price: ${totalPrice}</p>
-        </div>
-        <button
-          type="button"
-          className="confirm-order-btn"
-          onClick={handleConfirmOrder}
-          disabled={selectedPaymentMethod !== 'Cash on Delivery'}
-          aria-label="Confirm Order"
-        >
-          Confirm Order
-        </button>
-      </div>
+    <div className="payments-container">
+      {isOrderPlaced ? (
+        <p className="success-message">
+          Your order has been placed successfully
+        </p>
+      ) : (
+        <>
+          <h1 className="payments-heading">Payments Details</h1>
+          <p className="payments-sub-heading">Payment Method</p>
+          {renderPaymentMethodsInput()}
+          <div className="order-details">
+            <p className="payments-sub-heading">Order details:</p>
+            <p>Quantity: {cartList.length}</p>
+            <p>Total Price: RS {getTotalPrice()}/-</p>
+          </div>
+          <button
+            disabled={paymentMethod === ''}
+            type="button"
+            className="confirm-order-button"
+            onClick={onPlaceOrder}
+          >
+            Confirm Order
+          </button>
+        </>
+      )}
     </div>
   )
 }
